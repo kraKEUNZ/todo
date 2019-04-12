@@ -75,7 +75,16 @@ function deleteTodo($id){
     $query->execute(array(":id"=>$id));
 }
 
+function toggleDone($id, $fait){ // creation de la fonction qui prend 2 params
+    $con = getConnexion(); // on se connecete à la BDD
+    $params[":id"] = $id; // 1er parametre avec la variable du parametre d'entrée
+    $params[":fait"] = $fait; // 2eme voir au dessus
+    $query = $con->prepare("UPDATE todo SET `done`= :fait WHERE `id`= :id"); // preparation de la requete
 
+    // execution de la requete avec les parametres definis au dessus
+    $result = $query->execute($params);
+    return $result;
+}
 
 
 

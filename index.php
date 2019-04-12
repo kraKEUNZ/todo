@@ -39,7 +39,12 @@ $todos = getAllTodo();
                                     'src="./images/default.jpg"' ; ?>
                                 class="img-thumbnail" /></td>
                             <td><?= $todo["task"]; ?></td>
-                            <td><?= ($todo["done"] == 0)? "NON":"OUI"; ?></td>
+                            <td><?= ($todo["done"] == 0)? "NON":"OUI"; ?>
+                                <label class="switch" >
+                                    <input <?= ($todo["done"] == 1)? "checked":""; ?> type="checkbox" id="toggleBtn" name="<?= $todo['id'];?> " />
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
                             <td><?= $dateCreated->format('H:i d/m/Y'); ?></td>
                             <td><?= $dateUpdated->format('H:i d/m/Y'); ?></td>
                             <td class="row">
@@ -75,7 +80,8 @@ $todos = getAllTodo();
 
 <?php
 
-$scripts = ["jquery.min.js", "popperjs.min.js", "bootstrap.min.js"];
+
+$scripts = ["jquery.min.js", "popperjs.min.js", "bootstrap.min.js", "toggle.js"];
 include "./includes/footer.php";
 
 ?>
