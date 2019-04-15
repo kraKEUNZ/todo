@@ -9,7 +9,10 @@ function getAllTodo(){
     $todos = [];
 
     $con = getConnexion();
-    $query = $con->prepare("SELECT * FROM `todo`");
+    $query = $con->prepare("SELECT * FROM `todo` 
+                                    INNER JOIN priority 
+                                    WHERE todo.priority = priority.id_priority 
+                                    ORDER BY todo.done ASC, priority.value DESC");
     $query->execute();
 
     while($row = $query->fetch(PDO::FETCH_ASSOC)){
@@ -20,10 +23,10 @@ function getAllTodo(){
     return $todos;
 }
 
-function createTodo($task, $target_file = null){
+function createTodo($task, $priority, $target_file = null){
     $con = getConnexion();
-    $query = $con->prepare("INSERT INTO todo (`id`,`task`,`done`,`imgPath`) VALUES (NULL, :task, false, :imgPath)");
-    return $query->execute(array(':task'=>$task, ':imgPath'=> $target_file));
+    $query = $con->prepare("INSERT INTO todo (`id`,`task`,`done`,`imgPath`, `priority`) VALUES (NULL, :task, false, :imgPath, :priority)");
+    return $query->execute(array(':task'=>$task, ':priority'=>$priority, ':imgPath'=> $target_file));
 }
 
 function getTodoById($id){
@@ -34,16 +37,23 @@ function getTodoById($id){
     return $todo;
 }
 
-function updateTodo($id, $task, $imgPath = null, $forceDelete = false){
+function changeStateTodo($id, $state){
     $con = getConnexion();
-    $query = $con->prepare("UPDATE todo SET `task`= :task WHERE `id`= :id");
-    $params = array(":id"=>$id, ":task"=>$task);
+    $query = $con->prepare("UPDATE todo SET done= :done WHERE id= :id");
+    $result = $query->execute(array(":id"=>$id, ":done"=>$state));
+    return $result;
+}
+
+function updateTodo($id, $task, $priority, $imgPath = null, $forceDelete = false){
+    $con = getConnexion();
+    $query = $con->prepare("UPDATE todo SET `task`= :task, `priority` = :priority WHERE `id`= :id");
+    $params = array(":id"=>$id, ":task"=>$task, ":priority"=> $priority);
     if (!empty($imgPath) && !$forceDelete){
         $todo = getTodoById($id);
         if (!empty($todo['imgPath'])){
             deleteImg($todo['imgPath']);
         }
-        $query = $con->prepare("UPDATE todo SET `task`= :task , `imgPath`= :imgPath WHERE `id`= :id");
+        $query = $con->prepare("UPDATE todo SET `task`= :task , `priority` = :priority, `imgPath`= :imgPath WHERE `id`= :id");
         $params[":imgPath"] = $imgPath;
     }
     if (empty($imgPath) && $forceDelete){
@@ -51,7 +61,7 @@ function updateTodo($id, $task, $imgPath = null, $forceDelete = false){
         if (!empty($todo['imgPath'])){
             deleteImg($todo['imgPath']);
         }
-        $query = $con->prepare("UPDATE todo SET `task`= :task , `imgPath`= :imgPath WHERE `id`= :id");
+        $query = $con->prepare("UPDATE todo SET `task`= :task , `priority` = :priority, `imgPath`= :imgPath WHERE `id`= :id");
         $params[":imgPath"] = $imgPath;
     }
 
@@ -75,15 +85,19 @@ function deleteTodo($id){
     $query->execute(array(":id"=>$id));
 }
 
-function toggleDone($id, $fait){ // creation de la fonction qui prend 2 params
-    $con = getConnexion(); // on se connecete à la BDD
-    $params[":id"] = $id; // 1er parametre avec la variable du parametre d'entrée
-    $params[":fait"] = $fait; // 2eme voir au dessus
-    $query = $con->prepare("UPDATE todo SET `done`= :fait WHERE `id`= :id"); // preparation de la requete
+function getAllPriorities(){
+    $priorities = [];
 
-    // execution de la requete avec les parametres definis au dessus
-    $result = $query->execute($params);
-    return $result;
+    $con = getConnexion();
+    $query = $con->prepare("SELECT * FROM `priority` ORDER BY `value` ASC");
+    $query->execute();
+
+    while($row = $query->fetch(PDO::FETCH_ASSOC)){
+        array_push($priorities, $row);
+    }
+
+
+    return $priorities;
 }
 
 

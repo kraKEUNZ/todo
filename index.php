@@ -4,7 +4,10 @@ require "./requires/function.php";
 $page = 'accueil';
 include "./includes/head.php";
 
+
+$priorities = getAllPriorities();
 $todos = getAllTodo();
+
 
 
 ?>
@@ -21,6 +24,7 @@ $todos = getAllTodo();
                         <th scope="col">Done</th>
                         <th scope="col">Created at</th>
                         <th scope="col">Updated at</th>
+                        <th scope="col">Priority</th>
                         <th></th>
                     </tr>
                     </thead>
@@ -31,7 +35,7 @@ $todos = getAllTodo();
                         $dateCreated = new DateTime($task_date_created);
                         $dateUpdated = new DateTime($task_date_updated);
                     ?>
-                        <tr>
+                        <tr id="todo-row-id-<?= $todo["id"]; ?>">
                             <th scope="row"><?= $todo["id"]; ?></th>
                             <td style="max-width: 120px;"><img <?=
                                 !empty($todo["imgPath"]) ?
@@ -39,14 +43,21 @@ $todos = getAllTodo();
                                     'src="./images/default.jpg"' ; ?>
                                 class="img-thumbnail" /></td>
                             <td><?= $todo["task"]; ?></td>
-                            <td><?= ($todo["done"] == 0)? "NON":"OUI"; ?>
+                            <td>
                                 <label class="switch" >
-                                    <input <?= ($todo["done"] == 1)? "checked":""; ?> type="checkbox" id="toggleBtn" name="<?= $todo['id'];?> " />
+                                    <input <?= ($todo["done"] == 1)? "checked":""; ?> type="checkbox"
+                                           class="toggleBtn"
+                                           data-value="<?= $todo['id'];?>" />
                                     <span class="slider"></span>
                                 </label>
                             </td>
                             <td><?= $dateCreated->format('H:i d/m/Y'); ?></td>
-                            <td><?= $dateUpdated->format('H:i d/m/Y'); ?></td>
+                            <td class="todo-updated-at"><?= $dateUpdated->format('H:i d/m/Y'); ?></td>
+                            <td>
+                                <?php foreach ($priorities as $priority){ ?>
+                                    <?= $priority['id_priority'] == $todo['priority'] ? $priority['name'] : "" ;?>
+                                <?php } ?>
+                            </td>
                             <td class="row">
 
                                 <a href="/edit.php?id=<?= $todo["id"]; ?>">
@@ -61,7 +72,6 @@ $todos = getAllTodo();
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
-                            </td>
                         </tr>
                     <?php } ?>
                     </tbody>
@@ -81,7 +91,7 @@ $todos = getAllTodo();
 <?php
 
 
-$scripts = ["jquery.min.js", "popperjs.min.js", "bootstrap.min.js", "toggle.js"];
+$scripts = ["jquery.min.js", "popperjs.min.js", "bootstrap.min.js", "toggle.js", "toaster.min.js"];
 include "./includes/footer.php";
 
 ?>
