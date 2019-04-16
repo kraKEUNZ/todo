@@ -15,6 +15,11 @@ $todos = getAllTodo();
     <div class="container">
         <div class="row">
             <div class="col-12">
+                <a href="/list_category.php"><button class="btn btn-sm btn-info">Liste des ctaégories</button></a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
                 <table class="table table-striped">
                     <thead>
                     <tr>

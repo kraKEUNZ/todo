@@ -100,7 +100,48 @@ function getAllPriorities(){
     return $priorities;
 }
 
+function getAllCategories(){
+    $categories = [];
 
+    $con = getConnexion();
+    $query = $con->prepare("SELECT * FROM `category`");
+    $query->execute();
+
+    while($row = $query->fetch(PDO::FETCH_ASSOC)){
+        array_push($categories, $row);
+    }
+
+
+    return $categories;
+}
+
+function createCategory($name){
+    $con = getConnexion();
+    $query = $con->prepare("INSERT INTO category (`id_category`,`name`) 
+                                VALUES (NULL, :name)");
+    return $query->execute(array(':name'=>$name));
+}
+
+function getCategoryById($id_category){
+    $con = getConnexion();
+    $query = $con->prepare("SELECT * FROM category WHERE id_category = :id_category");
+    $query->execute(array(":id_category"=>$id_category));
+    $category = $query->fetch(PDO::FETCH_ASSOC);
+    return $category;
+}
+
+function updateCategory($id_category, $name){
+    $con = getConnexion();
+    $query = $con->prepare("UPDATE category SET name= :nameCat WHERE id_category= :id_category");
+    $result = $query->execute(array(":id_category"=>$id_category, ":nameCat"=>$name));
+    return $result;
+}
+
+function deleteCategory($id_category){
+    $con = getConnexion();
+    $query = $con->prepare("DELETE FROM category WHERE id_category = :id");
+    $query->execute(array(":id"=>$id_category));
+}
 
 
 
