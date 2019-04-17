@@ -10,11 +10,6 @@ $categories = getAllCategories();
     <div class="container">
         <div class="row">
             <div class="col-12">
-                <a href="/index.php"><button class="btn btn-sm btn-info">Liste des tâches</button></a>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-12">
                 <table class="table table-striped">
                     <thead>
                     <tr>
