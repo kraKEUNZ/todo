@@ -12,28 +12,76 @@ function getAllTodo(){
     $query = $con->prepare("SELECT * FROM `todo` 
                                     INNER JOIN priority 
                                     WHERE todo.priority = priority.id_priority 
-                                    ORDER BY todo.done ASC, priority.value DESC");
+                                    ORDER BY todo.done ASC, 
+                                    priority.value DESC");
     $query->execute();
 
     while($row = $query->fetch(PDO::FETCH_ASSOC)){
+        $id_todo = $row["id"];
+        $row["categories"] = $categoriesOfTodo = getCategoriesByTodo($id_todo);
         array_push($todos, $row);
     }
-
 
     return $todos;
 }
 
-function createTodo($task, $priority, $target_file = null){
+function getCategoriesByTodo($id_todo){
+    $todoCategories = [];
     $con = getConnexion();
-    $query = $con->prepare("INSERT INTO todo (`id`,`task`,`done`,`imgPath`, `priority`) VALUES (NULL, :task, false, :imgPath, :priority)");
-    return $query->execute(array(':task'=>$task, ':priority'=>$priority, ':imgPath'=> $target_file));
+    $query = $con->prepare("SELECT * FROM `todo_category`
+                                                INNER JOIN category
+                                      WHERE todo_category.id_category = category.id_category
+                                      AND id_todo = :id_todo");
+    $query->execute(array(":id_todo"=>$id_todo));
+    while($row = $query->fetch(PDO::FETCH_ASSOC)){
+        array_push($todoCategories, $row);
+    }
+
+
+    return $todoCategories;
 }
+
+
+
+function deleteTodoCategoriesByTodo($id_todo){
+    $con = getConnexion();
+    $query = $con->prepare("DELETE FROM todo_category WHERE id_todo = :id_todo");
+    $query->execute(array(":id_todo"=>$id_todo));
+}
+
+function deleteTodoCategoriesByCategory($id_category){
+    $con = getConnexion();
+    $query = $con->prepare("DELETE FROM todo_category WHERE id_category = :id_category");
+    $query->execute(array(":id_category"=>$id_category));
+}
+
+function associateTodoCategories($id_todo, $id_category){
+    $con = getConnexion();
+    $query = $con->prepare("INSERT INTO todo_category (`id_todo_category`, `id_todo`, `id_category`)
+                                    VALUES (NULL, :id_todo, :id_category)");
+    $query->execute(array(":id_todo"=>$id_todo, ":id_category"=>$id_category));
+}
+
+function createTodo($task, $priority, $todoCategories, $target_file = null){
+    $con = getConnexion();
+    $query = $con->prepare("INSERT INTO todo (`id`,`task`,`done`,`imgPath`, `priority`) 
+                                    VALUES (NULL, :task, false, :imgPath, :priority)");
+    $result = $query->execute(array(':task'=>$task, ':priority'=>$priority, ':imgPath'=> $target_file));
+    $id_todo = $con->lastInsertId();
+    foreach ($todoCategories as $id_category){
+        associateTodoCategories($id_todo, $id_category);
+    }
+    return $result;
+}
+
+
 
 function getTodoById($id){
     $con = getConnexion();
     $query = $con->prepare("SELECT * FROM todo WHERE id = :id");
     $query->execute(array(":id"=>$id));
     $todo = $query->fetch(PDO::FETCH_ASSOC);
+    $todo["categories"] = getCategoriesByTodo($id);
     return $todo;
 }
 
@@ -44,7 +92,7 @@ function changeStateTodo($id, $state){
     return $result;
 }
 
-function updateTodo($id, $task, $priority, $imgPath = null, $forceDelete = false){
+function updateTodo($id, $task, $priority, $todoCategories, $imgPath = null, $forceDelete = false){
     $con = getConnexion();
     $query = $con->prepare("UPDATE todo SET `task`= :task, `priority` = :priority WHERE `id`= :id");
     $params = array(":id"=>$id, ":task"=>$task, ":priority"=> $priority);
@@ -66,6 +114,12 @@ function updateTodo($id, $task, $priority, $imgPath = null, $forceDelete = false
     }
 
     $result = $query->execute($params);
+    if ($result == true){
+        deleteTodoCategoriesByTodo($id);
+        foreach ($todoCategories as $id_category){
+            associateTodoCategories($id, $id_category);
+        }
+    }
     return $result;
 }
 
@@ -83,6 +137,7 @@ function deleteTodo($id){
     $con = getConnexion();
     $query = $con->prepare("DELETE FROM todo WHERE id = :id");
     $query->execute(array(":id"=>$id));
+    deleteTodoCategoriesByTodo($id);
 }
 
 function getAllPriorities(){
@@ -141,6 +196,7 @@ function deleteCategory($id_category){
     $con = getConnexion();
     $query = $con->prepare("DELETE FROM category WHERE id_category = :id");
     $query->execute(array(":id"=>$id_category));
+    deleteTodoCategoriesByCategory($id_category);
 }
 
 

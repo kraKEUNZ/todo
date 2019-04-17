@@ -10,8 +10,10 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ){
     $id = (isset($_POST["id"]) && !empty($_POST["id"])) ? $_POST["id"] : null;
     $file = (isset($_FILES["imgTodo"]["name"]) && !empty($_FILES["imgTodo"]["name"])) ? $_FILES["imgTodo"] : null;
     $task = (isset($_POST["task"]) && !empty($_POST["task"])) ? $_POST["task"] : null;
+    $todoCategories = (isset($_POST["todoCategories"]) && !empty($_POST["todoCategories"]))? $_POST["todoCategories"] : null;
     $priority = (isset($_POST["priority"]) && !empty($_POST["priority"])) ? $_POST["priority"] : null;
     $delete = (isset($_POST["delete"]) && !empty($_POST["delete"])) ? $_POST["delete"] : null;
+
 
     $target_file = null;
     if($file){
@@ -23,7 +25,7 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ){
         move_uploaded_file($file["tmp_name"], $target_file);
     }
 
-    $updated = updateTodo($id, $task, $priority, $target_file, boolval($delete));
+    $updated = updateTodo($id, $task, $priority, $todoCategories, $target_file, boolval($delete));
     if ($updated){
         header("Location: /index.php");
         exit();
@@ -33,6 +35,9 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ){
 
 $todo = getTodoById($id);
 $priorities = getAllPriorities();
+$categories = getAllCategories();
+
+
 ?>
     <div class="container">
         <div class="row justify-content-center">
@@ -44,9 +49,11 @@ $priorities = getAllPriorities();
                         <img id="current-img" class="img-fluid" src="<?= $todo["imgPath"]; ?>"/>
                         <div id="img-btn-group" style="display: flex;justify-content: space-between;width: 100%;position: relative;top: -30px;">
                             <button type="button" class="btn btn-sm btn-danger" id="btn-delete-img">
-                                <i class="fas fa-trash"></i></button>
+                                <i class="fas fa-trash"></i>
+                            </button>
                             <button type="button" class="btn btn-sm btn-info float-right" id="btn-change-img">
-                                <i class="fas fa-edit"></i></button>
+                                <i class="fas fa-edit"></i>
+                            </button>
                         </div>
                     </div>
                     <?php
@@ -74,6 +81,31 @@ $priorities = getAllPriorities();
                                 </option>
                             <?php } ?>
                         </select>
+                    </div>
+                    <div class="form-group">
+
+                        <div>Associer des catégories :</div>
+                        <div class="form-check-inline">
+                            <?php foreach ($categories as $category){
+                                $exists = false;
+                                foreach ($todo["categories"] as $todoCategory){
+                                    if ($todoCategory["id_category"] == $category["id_category"]){
+                                        $exists = true;
+                                    }
+                                }
+
+                                ?>
+                                <label class="form-check-label mr-3">
+                                    <input class="form-check-inline"
+                                           type="checkbox"
+                                           name="todoCategories[]"
+                                           value="<?= $category["id_category"] ?>"
+                                           <?= ($exists == true)? "checked":"" ;?>
+                                    />
+                                    <?= $category["name"]?>
+                                </label>
+                            <?php }?>
+                        </div>
                     </div>
                     <div class="form-group <?= (isset($todo["imgPath"]) && !empty($todo["imgPath"]))? 'd-none':''; ?>" id="add-img-btn">
                         <button type="button" class="btn btn-sm btn-success" id="btn-add-img">

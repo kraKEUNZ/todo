@@ -42,7 +42,12 @@ $todos = getAllTodo();
                                     'src="'.$todo["imgPath"].'"' :
                                     'src="./images/default.jpg"' ; ?>
                                 class="img-thumbnail" /></td>
-                            <td><?= $todo["task"]; ?></td>
+                            <td>
+                                <div><?= $todo["task"]; ?></div>
+                                <div><?php foreach ($todo["categories"] as $category) {?>
+                                    <span class="badge badge-secondary"><?= $category["name"] ?></span>
+                                    <?php } ?>
+                                </div>
                             <td>
                                 <label class="switch" >
                                     <input <?= ($todo["done"] == 1)? "checked":""; ?> type="checkbox"
